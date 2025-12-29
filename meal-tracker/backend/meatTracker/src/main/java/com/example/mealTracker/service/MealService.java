@@ -45,11 +45,12 @@ public class MealService {
         return mealItemMapper.findItemsBySessionId(sessionId);
     }
 
+
     public MealMessageResponse handle(MealMessageRequest req, Long sessionId) {
 
         String msg = req.message() == null ? "" : req.message().trim();
         if (msg.isBlank()) {
-            return build("빈 입력값입니다.", sessionId);
+            return buildResponse("빈 입력값입니다.", sessionId);
         }
 
         JsonNode action = openAiService.parseMealAction(msg);
@@ -57,20 +58,19 @@ public class MealService {
         JsonNode itemsNode = action.path("items");
 
         if ("MANUAL_RESET".equals(intent)) {
-            // TODO: 실제 reset 로직이 있으면 여기서 수행
             String assistantText = "수동 초기화 요청 처리";
-            return build(assistantText, sessionId);
+            return buildResponse(assistantText, sessionId);
         }
 
         if ("END_SUMMARY".equals(intent)) {
             String assistantText = "오늘 요약 종료";
-            return build(assistantText, sessionId);
+            return buildResponse(assistantText, sessionId);
         }
 
         if ("LOG_FOOD".equals(intent)) {
 
             if (!itemsNode.isArray() || itemsNode.isEmpty()) {
-                return build("기록할 음식이 없음", sessionId);
+                return buildResponse("기록할 음식이 없음", sessionId);
             }
 
             for (JsonNode it : itemsNode) {
@@ -85,11 +85,11 @@ public class MealService {
 
                 FoodMaster exact = foodMasterMapper.findByName(normalized);
                 if (exact != null) {
-                    continue; // 문제 없음
+                    continue;
                 }
 
                 List<FoodMaster> suggestions =
-                        foodMasterMapper.findSimilarByName(normalized);
+                        findSimilarByNameJava(normalized,3);
 
                     return MealMessageResponse.needConfirm(
                             "‘" + rawName + "’는 등록된 음식이 아님",
@@ -145,9 +145,9 @@ public class MealService {
                     total + "개 기록함. DB " + dbHits + "개, 추정 " + estimates + "개. " +
                             "이번 +" + Math.round(addPro) + "g";
 
-            return build(assistantText, sessionId);
+            return buildResponse(assistantText, sessionId);
         }
-        return build("", sessionId);
+        return buildResponse("", sessionId);
     }
 
 
@@ -181,39 +181,13 @@ public class MealService {
         return s;
     }
 
-    private FoodMaster findFoodMasterByCandidates(String rawName, List<String> candidates) {
-
-        // 후보가 null이면 빈 리스트
-        List<String> list = candidates == null ? List.of() : candidates;
-
-        // 1) 우선순위: GPT 후보 -> rawName
-        java.util.LinkedHashSet<String> pool = new java.util.LinkedHashSet<>();
-        for (String c : list) {
-            if (c != null && !c.isBlank()) pool.add(c);
-        }
-        pool.add(rawName);
-
-        for (String c : pool) {
-            String key = normalizeName(c);
-            if (key.isBlank()) continue;
-
-            FoodMaster fm = foodMasterMapper.findByName(key);
-            if (fm != null) return fm;
-        }
-        return null;
-    }
-
-
-
-
-
-
+    // 먹은 것 기록.
     private void InsertItem(String name, int addCount, double addCal, double addPro, long sessionId) {
        MealItem item = new MealItem(name, addCount, addCal, addPro, sessionId);
        mealItemMapper.insertItem(item);
     }
 
-    public MealMessageResponse build(String assistantText, long sessionId) {
+    public MealMessageResponse buildResponse(String assistantText, long sessionId) {
         TodaySummary summary = calcSummary(sessionId);
         return MealMessageResponse.normal(
                 assistantText + "\n" + remainText(summary),
@@ -222,6 +196,7 @@ public class MealService {
         );
     }
 
+    // 오늘의 칼로리 계산
     public TodaySummary calcSummary(long sessionId) {
         double totalCal = 0;
         double totalPro = 0;
@@ -234,6 +209,7 @@ public class MealService {
         return new TodaySummary(totalCal, totalPro, GOAL_CAL, GOAL_PRO);
     }
 
+    //남은 단백질/칼로리 제공
     private String remainText(TodaySummary s) {
         double remainPro = Math.max(0, s.getGoalProtein() - s.getTotalProtein());
         double remainCal = Math.max(0, s.getGoalCalories() - s.getTotalCalories());
@@ -256,6 +232,130 @@ public class MealService {
 
         return TodayResponse.of(session, summary, items);
     }
+
+    private volatile List<String> foodNameCache = List.of();
+    private volatile long foodNameCacheLoadedAt = 0L;
+    private static final long FOOD_CACHE_TTL_MS = 5 * 60 * 1000; // 5분
+
+
+    private List<String> getFoodNamesCached() {
+        long now = System.currentTimeMillis();
+
+        // 5분 이하면 돌려보내기
+        if (!foodNameCache.isEmpty() && (now - foodNameCacheLoadedAt) < FOOD_CACHE_TTL_MS) {
+            return foodNameCache;
+        }
+
+        // 동시성 대충 막기
+        synchronized (this) {
+            now = System.currentTimeMillis();
+            if (!foodNameCache.isEmpty() && (now - foodNameCacheLoadedAt) < FOOD_CACHE_TTL_MS) {
+                return foodNameCache;
+            }
+
+            List<String> names = foodMasterMapper.findAllNames().stream()
+                    .map(n -> n.getName())
+                    .filter(s -> s != null && !s.isBlank())
+                    .toList();
+
+            foodNameCache = names;
+            foodNameCacheLoadedAt = now;
+            return foodNameCache;
+        }
+    }
+
+    private int levenshtein(String a, String b) {
+        if (a == null) a = "";
+        if (b == null) b = "";
+
+        int n = a.length();
+        int m = b.length();
+
+        if (n == 0) return m;
+        if (m == 0) return n;
+
+        int[] prev = new int[m + 1];
+        int[] curr = new int[m + 1];
+
+        for (int j = 0; j <= m; j++) prev[j] = j;
+
+        for (int i = 1; i <= n; i++) {
+            curr[0] = i;
+            char ca = a.charAt(i - 1);
+            for (int j = 1; j <= m; j++) {
+                int cost = (ca == b.charAt(j - 1)) ? 0 : 1;
+                curr[j] = Math.min(
+                        Math.min(curr[j - 1] + 1, prev[j] + 1),
+                        prev[j - 1] + cost
+                );
+            }
+            int[] tmp = prev; prev = curr; curr = tmp;
+        }
+        return prev[m];
+    }
+
+    private List<FoodMaster> findSimilarByNameJava(String normalized, int limit) {
+        String q = normalizeName(normalized);
+        if (q.isBlank()) return List.of();
+
+        List<String> names = getFoodNamesCached();
+        if (names.isEmpty()) return List.of();
+
+        // 부분 포함 후보
+        List<String> containHits = new java.util.ArrayList<>();
+        for (String n : names) {
+            if (n.contains(q) || q.contains(n)) {
+                containHits.add(n);
+            }
+        }
+
+        // 레벤슈타인으로 전체 후보 점수 계산
+        record Scored(String name, int dist, int lenDiff, boolean contains) {}
+        List<Scored> scored = new java.util.ArrayList<>(names.size());
+
+        for (String n : names) {
+            int dist = levenshtein(n, q);
+            int lenDiff = Math.abs(n.length() - q.length());
+            boolean contains = (n.contains(q) || q.contains(n));
+            scored.add(new Scored(n, dist, lenDiff, contains));
+        }
+
+        scored.sort((x, y) -> {
+            // contains 우선
+            int c1 = Boolean.compare(y.contains, x.contains);
+            if (c1 != 0) return c1;
+            // 거리 낮은 순
+            int c2 = Integer.compare(x.dist, y.dist);
+            if (c2 != 0) return c2;
+            // 길이 차이 낮은 순
+            return Integer.compare(x.lenDiff, y.lenDiff);
+        });
+
+        // 너무 먼 후보는 컷
+        int maxDist = Math.max(2, q.length() / 2);
+        List<String> topNames = new java.util.ArrayList<>();
+
+        for (Scored s : scored) {
+            if (topNames.size() >= limit) break;
+            if (s.dist > maxDist) continue;
+            topNames.add(s.name);
+        }
+
+        if (topNames.isEmpty()) {
+            // contains 후보라도 있으면 억지로
+            for (String n : containHits) {
+                topNames.add(n);
+                if (topNames.size() >= limit) break;
+            }
+        }
+
+        if (topNames.isEmpty()) return List.of();
+
+        return foodMasterMapper.findByNames(topNames);
+    }
+
+
+
 
 
 }

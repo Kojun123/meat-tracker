@@ -10,6 +10,8 @@ import java.util.List;
 public interface FoodMasterMapper {
 
         FoodMaster findByName(String name);
-        List<FoodMaster> findSimilarByName(@Param("name") String name);
+        List<FoodMaster> findByNames(@Param("names") List<String> name);
+        List<FoodMaster> findAllNames();
+
 
 }

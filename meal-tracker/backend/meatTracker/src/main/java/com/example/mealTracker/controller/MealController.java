@@ -24,7 +24,7 @@ public class MealController {
     @PostMapping("/getSummary")
     public ResponseEntity<MealMessageResponse> getSummary() {
         Long sessionId = mealService.getSessionId();
-        return ResponseEntity.ok(mealService.build("", sessionId));
+        return ResponseEntity.ok(mealService.buildResponse("", sessionId));
     }
 
     @PostMapping("/message")
