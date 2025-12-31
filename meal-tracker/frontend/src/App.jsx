@@ -16,7 +16,6 @@ function App() {
       headers: { "Content-Type": "application/json" },
     });
     const data = await res.json();
-    console.log("today", data);
     setSummary(data.todaySummary);
     setItems(data.items ?? []);
     setSession(data.session);
@@ -44,7 +43,7 @@ function App() {
     const trimmed = (text ?? "").trim();
     if (!trimmed) return;
 
-    // 새 메시지 보내면 기존 needConfirm은 일단 닫음 (선택 UI는 최신 응답 기준)
+    // 새 메시지 보내면 기존 needConfirm은 닫음
     setNeedConfirm(null);
 
     setLogs((prev) => [...prev, { role: "user", text: trimmed }]);
@@ -62,6 +61,7 @@ function App() {
     }
 
     const data = await res.json();
+    console.log("data",data);
 
     // assistantText는 항상 출력
     if (data?.assistantText) {

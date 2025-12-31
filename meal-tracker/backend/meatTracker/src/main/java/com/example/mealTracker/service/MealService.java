@@ -76,7 +76,6 @@ public class MealService {
 
 
             List<String> text1 = new ArrayList<>();
-            int i1 = 0;
 
             for (JsonNode it : itemsNode) {
 
