@@ -74,80 +74,52 @@ public class MealService {
                 return buildResponse("기록할 음식이 없음", sessionId);
             }
 
-
-            List<String> text1 = new ArrayList<>();
+            List<String> lines = new ArrayList<>();
+            double addPro = 0;
+            double addCal = 0;
 
             for (JsonNode it : itemsNode) {
-
                 String rawName = it.path("name").asText();
                 int count = it.path("count").asInt(1);
                 if (count < 1) count = 1;
 
                 String normalized = normalizeName(rawName);
 
-
                 FoodMaster fm = foodMasterMapper.findByName(normalized);
-                if (fm != null) {
-                    InsertItem(normalized, count, fm.getKcal()*count, fm.getProtein()*count, sessionId);
-                    text1.add(rawName + " x" + count + " 단백질 : " + fm.getProtein() + " 칼로리 : " + fm.getKcal());
-                    continue;
-                }
-
-                TodaySummary summary = calcSummary(sessionId);
-                List<MealItem> items = findItemsBySessionId(sessionId);
-
-                List<FoodMaster> suggestions =
-                        findSimilarByNameJava(normalized,3);
+                if (fm == null) {
+                    TodaySummary summary = calcSummary(sessionId);
+                    List<MealItem> items = findItemsBySessionId(sessionId);
+                    List<FoodMaster> suggestions = findSimilarByNameJava(normalized, 3);
 
                     return MealMessageResponse.needConfirm(
-                            String.join("\n", text1) + "\n [" + rawName + "]는 등록된 음식이 아님",
+                            String.join("\n", lines) + "\n[" + rawName + "]는 등록된 음식이 아님",
                             rawName,
                             count,
                             suggestions,
                             summary,
                             items
                     );
-            }
-
-            double addPro = 0;
-            double addCal = 0;
-            String [] text2 = new String[itemsNode.size()];
-            int i2 = 0;
-            for (JsonNode it : itemsNode) {
-
-                String rawName = it.path("name").asText();
-                int count = it.path("count").asInt(1);
-                if (count < 1) count = 1;
-
-                String normalized = normalizeName(rawName);
-
-                double calories = 0;
-                double protein = 0;
-
-                FoodMaster fm = foodMasterMapper.findByName(normalized);
-
-
-                if (fm != null) {
-                    protein = fm.getProtein() * count;
-                    calories = fm.getKcal() == null ? 0 : fm.getKcal() * count;
-                } else {
-                    EstimateResult est = estimator.estimate(normalized, count);
-                    protein = est.protein();
-                    calories = est.calories();
                 }
+
+                double protein = fm.getProtein() * count;
+                double calories = (fm.getKcal() == null ? 0 : fm.getKcal() * count);
 
                 InsertItem(normalized, count, calories, protein, sessionId);
 
-                addCal += calories;
                 addPro += protein;
-                text2[i2++] = rawName + " x" + count + " 단백질 : " + protein + " 칼로리 : " + calories + " \n";
+                addCal += calories;
+
+                lines.add(rawName + " x" + count + " 단백질 : " + protein + " 칼로리 : " + calories);
             }
 
-            String assistantText = Arrays.toString(text2) + "\n 총 단백질 : " + addPro + " 총 칼로리 : " + addCal ;
-
+            String assistantText =
+                    String.join("\n", lines)
+                            + "\n총 단백질 : " + addPro
+                            + " 총 칼로리 : " + addCal;
 
             return buildResponse(assistantText, sessionId);
         }
+
         return buildResponse("", sessionId);
     }
 
