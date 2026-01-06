@@ -16,10 +16,15 @@ function App() {
   const [manual, setManual] = useState({rawName:"", count:1, protein:"", kcal:""});
 
   const loadDashBoard = async () => {
-    const res = await fetch("/api/meal/today", {
+    const res = await fetch("/api/meal/today", {credentials:"include"}, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
+
+    if(res.status === 401) {
+      return;
+    }
+
     const data = await res.json();
     setSummary(data.todaySummary);
     setItems(data.items ?? []);
@@ -317,7 +322,6 @@ function App() {
           placeholder="ex: 오늘 식단 시작"
           style={{ flex: 1, padding: 8 }}
         />
-
         <button onClick={send}>전송</button>
       </div>
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.mealTracker.mapper.UserMapper">
+
+    <select id="findByEmail" resultType="com.example.mealTracker.domain.MealTrackerUser">
+        SELECT
+        id,
+        email,
+        password,
+        created_at
+        FROM users
+        WHERE email = #{email}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (email, password, created_at)
+        VALUES (#{email}, #{password}, NOW())
+    </insert>
+
+</mapper>
