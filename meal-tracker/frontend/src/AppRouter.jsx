@@ -1,12 +1,12 @@
 import { Routes, Route } from "react-router-dom";
-import App from "./App";
-import Login from "./Login"; // 핵심
+import Dashboard from "./Dashboard";
+import Login from "./Login"; 
 
 export default function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/" element={<App />} />
+      <Route path="/" element={<Dashboard />} />
     </Routes>
   );
 }
