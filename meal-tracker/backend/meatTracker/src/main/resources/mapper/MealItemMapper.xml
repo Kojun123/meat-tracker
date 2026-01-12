@@ -6,7 +6,7 @@
 
     <insert id="insertItem" parameterType="com.example.mealTracker.domain.MealItem" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO meal_item (user_id, name, count, calories, protein, assumption, meal_date)
-        VALUES (#{userId}, #{name}, #{count}, #{calories}, #{protein}, #{assumption}, ${mealDate)
+        VALUES (#{userId}, #{name}, #{count}, #{calories}, #{protein}, #{assumption}, #{mealDate})
     </insert>
 
     <select id="findItemsByUser" resultType="com.example.mealTracker.domain.MealItem">
