@@ -11,8 +11,6 @@ import com.example.mealTracker.mapper.FoodMasterMapper;
 import com.example.mealTracker.mapper.MealItemMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,8 +25,6 @@ public class MealService {
     private final OpenAiService openAiService;
     private final MealItemMapper mealItemMapper;
     private final FoodMasterMapper foodMasterMapper;
-
-    Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public List<MealItem> findItemsBySessionId(String userId) {
         LocalDate now = LocalDate.now(ZoneId.of("Asia/Seoul"));
@@ -72,13 +68,11 @@ public class MealService {
                 int count = it.path("count").asInt(1);
                 if (count < 1) count = 1;
 
-                String normalized = normalizeName(rawName);
-
-                FoodMaster fm = foodMasterMapper.findByName(normalized);
+                FoodMaster fm = foodMasterMapper.findByName(rawName);
                 if (fm == null) {
                     TodaySummary summary = calcSummary(userId);
                     List<MealItem> items = findItemsBySessionId(userId);
-                    List<FoodMaster> suggestions = findSimilarByNameJava(normalized, 3);
+                    List<FoodMaster> suggestions = findSimilarByNameJava(rawName, 3);
 
                     return MealMessageResponse.needConfirm(
                             String.join("\n", lines) + "\n[" + rawName + "]는 등록된 음식이 아님",
@@ -93,7 +87,7 @@ public class MealService {
                 double protein = fm.getProtein() * count;
                 double calories = (fm.getKcal() == null ? 0 : fm.getKcal() * count);
 
-                InsertItem(normalized, count, calories, protein, userId);
+                InsertItem(rawName, count, calories, protein, userId);
 
                 addPro += protein;
                 addCal += calories;
@@ -110,37 +104,6 @@ public class MealService {
         }
 
         return buildResponse("", userId);
-    }
-
-
-    public String normalizeName(String raw) {
-        if (raw == null) return "";
-
-        String s = raw.trim();
-
-        // 1. 공백 정리
-        s = s.replaceAll("\\s+", " ");
-
-        // 2. 수량/불필요 단어 제거
-        s = s.replaceAll("(한개|한 개|1개|두개|2개|세개|3개)", "");
-        s = s.replaceAll("(먹음|먹었어|마심|마셨어)", "");
-
-        // 3. 괄호 제거
-        s = s.replaceAll("\\(.*?\\)", "");
-
-        s = s.trim();
-
-        // 4. 별칭 교정
-        return aliasMap(s);
-    }
-
-    private String aliasMap(String s) {
-        if (s.equalsIgnoreCase("셀릭스")) return "셀렉스";
-        if (s.equalsIgnoreCase("셀릭스 프로틴")) return "셀렉스";
-        if (s.equalsIgnoreCase("닭가슴")) return "닭가슴살";
-        if (s.equalsIgnoreCase("계란")) return "계란"; // 그대로
-
-        return s;
     }
 
     // 먹은 것 기록.
@@ -260,7 +223,7 @@ public class MealService {
     }
 
     private List<FoodMaster> findSimilarByNameJava(String normalized, int limit) {
-        String q = normalizeName(normalized);
+        String q = normalized;
         if (q.isBlank()) return List.of();
 
         List<String> names = getFoodNamesCached();
