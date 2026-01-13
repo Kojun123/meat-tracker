@@ -3,6 +3,7 @@ package com.example.mealTracker.controller;
 
 import com.example.mealTracker.dto.MeResponse;
 import com.example.mealTracker.dto.MealTrackerUserResponse;
+import com.example.mealTracker.dto.SignupRequest;
 import com.example.mealTracker.dto.UpdateTargetsResponse;
 import com.example.mealTracker.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -36,4 +37,9 @@ public class AuthController {
         return ResponseEntity.ok(userService.updateTargets(userId, vo));
     }
 
+    @PostMapping("/signup")
+    public ResponseEntity<Void> signup(@RequestBody SignupRequest vo) {
+        userService.sign(vo);
+        return ResponseEntity.ok().build();
+    }
 }

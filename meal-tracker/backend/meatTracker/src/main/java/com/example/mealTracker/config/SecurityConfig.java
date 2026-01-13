@@ -46,8 +46,8 @@ public class SecurityConfig {
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((req, res, e1) -> {
                             res.sendError(401);
-                        }))
-        ;
+                }));
+
                 return http.build();
     }
 

@@ -1,11 +1,9 @@
 package com.example.mealTracker.controller;
 
 
-import com.example.mealTracker.dto.ManualRequest;
-import com.example.mealTracker.dto.MealMessageRequest;
-import com.example.mealTracker.dto.MealMessageResponse;
-import com.example.mealTracker.dto.TodayResponse;
+import com.example.mealTracker.dto.*;
 import com.example.mealTracker.service.MealService;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,4 +39,6 @@ public class MealController {
     public ResponseEntity<MealMessageResponse> manual(@RequestBody ManualRequest vo) {
         return ResponseEntity.ok(mealService.manualInsert(vo));
     }
+
+
 }
