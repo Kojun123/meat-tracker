@@ -23,6 +23,7 @@ const [session, setSession] = useState(null);
 const [input, setInput] = useState("");
 const [logs, setLogs] = useState([]);
 const [needConfirm, setNeedConfirm] = useState(null);
+const [loading, setLoading] = useState(false);
 
 // modals
 const [manualOpen, setManualOpen] = useState(false);
@@ -101,13 +102,27 @@ const loadDashBoard = async (date) => {
 
   const sendText = async (text) => {
     const trimmed = (text ?? "").trim();
-    if (!trimmed) return;
+    if (!trimmed || loading) return;
 
-    // 새 메시지 보내면 기존 needConfirm은 닫음
-    setNeedConfirm(null);
-    
+    setLoading(true);
+    setNeedConfirm(null);    
     setInput("");
 
+    const userMsgId = crypto.randomUUID();
+    const gptMsgId = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    setLogs(prev => [      
+      { id: userMsgId, role: "USER", log: trimmed, createdAt: now, pending: false},
+      ...prev
+    ]);
+
+    setLogs(prev => [
+      {id: gptMsgId, role: "GPT", log: "", createdAt: now, pending: true},
+      ...prev
+    ])
+
+    try {
     const res = await fetch("/api/meal/message", {
       method: "POST",
       credentials: "include",
@@ -115,23 +130,51 @@ const loadDashBoard = async (date) => {
       body: JSON.stringify({ message: trimmed }),
     });
 
-    if (!res.ok) {
-      return;
-    }
+    if (!res.ok) throw new Error("서버 응답 오류");   
 
     const data = await res.json();
+
     handleServerResponse(data);
 
-    // needConfirm 있으면 저장해서 UI에 버튼 띄움
-    if (data.needConfirm) {
-      setNeedConfirm(data.needConfirm);
+    if (data.needConfirm) setNeedConfirm(data.needConfirm);
+
+    const gptText = data.assistantText ?? "기록 완료";
+    const gptAt = data.createdAt ?? new Date().toISOString();
+
+    setLogs((prev) =>
+      prev.map((log) =>
+        log.id === gptMsgId
+          ? { ...log, log: gptText, createdAt: gptAt, pending: false }
+          : log
+      )
+    );
+    } catch (e) {
+      console.error(e);
+      setLogs((prev) =>
+      prev.map((log) =>
+        log.id === gptMsgId
+          ? { ...log, log: "오류가 발생했어요. 다시 시도해주세요.", pending: false }
+          : log
+      )
+    );
+      showToast("error", "메시지 전송에 실패했습니다.");
+    } finally {
+      setLoading(false);
     }
+  
+
   };
 
   const send = async () => {
     const text = input.trim();
-    if (!text) return;
-    await sendText(text);
+    if (!text || loading) return;
+
+    setLoading(true);
+    try {
+      await sendText(text);
+    } finally {
+      setLoading(false);
+    }    
   };
 
 
@@ -354,6 +397,7 @@ const loadDashBoard = async (date) => {
           input={input}
           setInput={setInput}
           onSend={send}
+          loading={loading}
         />
       </section>
 
@@ -361,6 +405,17 @@ const loadDashBoard = async (date) => {
     <h3 className="text-base font-semibold text-gray-900">대화 로그</h3>
 
     <div className="mt-3 space-y-3">
+
+        {loading && (
+  <div className="flex justify-start">
+    <div className="max-w-[60%] rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-700">
+      <div className="mb-1 text-xs opacity-70">GPT</div>
+      <div className="animate-pulse">입력 중...</div>
+    </div>
+  </div>
+  )}
+ 
+
       {logs.map((log, idx) => {
         const isUser = log.role === "USER";
         const time = log.createdAt
@@ -382,9 +437,11 @@ const loadDashBoard = async (date) => {
                 {isUser ? "나" : "GPT"}
               </div>
 
-              <div className="whitespace-pre-line">{log.log}</div>
+              <div className="whitespace-pre-line">
+                {log.pending ? <span className="animate-pulse">{log.log}</span> : log.log}
+              </div>
 
-              {/* 🔽 여기: 채팅 시간 */}
+              
               {time && (
                 <div
                   className={[
@@ -399,8 +456,9 @@ const loadDashBoard = async (date) => {
           </div>
         );
       })}
+
     </div>
-  </section>
+  </section>  
 
       
     </div>

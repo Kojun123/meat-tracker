@@ -1,4 +1,4 @@
-export default function Compose({input, setInput, onSend}) {
+export default function Compose({input, setInput, onSend, loading}) {
     return (
         <div className="border-t border-gray-100 px-5 py-4">
             <div className="flex gap-2">
@@ -13,9 +13,15 @@ export default function Compose({input, setInput, onSend}) {
                 />                
                 <button
                     onClick={onSend}
-                    className="rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800"
+                    disabled={loading}
+                    className={[
+                         "rounded-xl px-4 py-2 font-semibold",
+                            loading
+                            ? "bg-gray-300 cursor-not-allowed"
+                            : "bg-gray-900 text-white hover:bg-gray-800",
+                        ].join(" ")}                    
                 >
-                    전송
+                    {loading ? "전송 중..." : "전송"}
                 </button>
             </div>
         </div>
