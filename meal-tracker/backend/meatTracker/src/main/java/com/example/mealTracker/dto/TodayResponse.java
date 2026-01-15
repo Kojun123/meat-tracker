@@ -15,21 +15,24 @@ public class TodayResponse {
 
     private TodaySummary summary;
     private List<MealItem> items;
+    private List<MealLogResponse> chatLog;
 
-    public TodayResponse(TodaySummary summary, List<MealItem> items) {
+    public TodayResponse(TodaySummary summary, List<MealItem> items, List<MealLogResponse> chatLog) {
         this.summary = summary;
         this.items = items;
+        this.chatLog = chatLog;
     }
 
-    public static TodayResponse of(TodaySummary summary, List<MealItem> items) {
+    public static TodayResponse of(TodaySummary summary, List<MealItem> items, List<MealLogResponse> chatLog) {
         return new TodayResponse(
                 summary,
-                items
+                items,
+                chatLog
         );
     }
 
    public static TodayResponse empty() {
-       return new TodayResponse(null, List.of());
+       return new TodayResponse(null, List.of(), List.of());
    }
 
 }

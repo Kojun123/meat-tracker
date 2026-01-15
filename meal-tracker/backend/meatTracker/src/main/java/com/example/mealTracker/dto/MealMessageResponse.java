@@ -8,25 +8,16 @@ import java.util.List;
 public record MealMessageResponse(
         String assistantText,
         TodaySummary todaySummary,
-        List<MealItem> items
+        List<MealItem> items,
+        List<MealLogResponse> chatLog
 ) {
+
     public static MealMessageResponse normal(
             String assistantText,
             TodaySummary summary,
-            List<MealItem> items
+            List<MealItem> items,
+            List<MealLogResponse> chatLog
     ) {
-        return new MealMessageResponse(assistantText, summary, items);
-    }
-
-    public static MealMessageResponse needConfirm(
-            String message,
-            TodaySummary summary,
-            List<MealItem> items
-    ) {
-        return new MealMessageResponse(
-                message,
-                summary,
-                items
-        );
+        return new MealMessageResponse(assistantText, summary, items, chatLog);
     }
 }

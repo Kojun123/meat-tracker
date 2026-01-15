@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.mealTracker.mapper.MealLogMapper">
+
+    <insert id="insertMealLog" parameterType="com.example.mealTracker.domain.MealLog">
+        INSERT INTO meal_log (email, log, role)
+        VALUES (#{email}, #{log}, #{role})
+    </insert>
+
+    <select id="getChatLogs" resultType="com.example.mealTracker.dto.MealLogResponse">
+        SELECT log, role, created_at as createdAt
+        FROM meal_log
+        WHERE email = #{email}
+        AND substring(created_at,1,10) = #{date}
+        ORDER BY created_at desc
+    </select>
+
+</mapper>

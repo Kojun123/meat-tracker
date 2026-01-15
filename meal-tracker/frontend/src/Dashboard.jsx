@@ -22,7 +22,6 @@ const [session, setSession] = useState(null);
 // chat/ui
 const [input, setInput] = useState("");
 const [logs, setLogs] = useState([]);
-const [logsLoaded, setLogsLoaded] = useState(false);
 const [needConfirm, setNeedConfirm] = useState(null);
 
 // modals
@@ -58,19 +57,10 @@ useEffect(() => {
     const data = await user.json();
     setUser(data);
     console.log("user", data);
-
-    const saved = localStorage.getItem("logs");
-    if (saved) setLogs(JSON.parse(saved));
-    setLogsLoaded(true);
+    
     loadDashBoard();
   })();
 }, []);
-
-
-useEffect(() => {
-    if (!logsLoaded) return;
-    localStorage.setItem("logs", JSON.stringify(logs));
-}, [logs, logsLoaded]); 
 
 useEffect(() => {
   if (!user) return;
@@ -104,6 +94,7 @@ const loadDashBoard = async (date) => {
     const data = await res.json();
     setSummary(data.todaySummary);
     setItems(data.items ?? []);
+    setLogs(data.chatLog ?? []);
     setSession(data.session);
 };
 
@@ -113,8 +104,7 @@ const loadDashBoard = async (date) => {
 
     // 새 메시지 보내면 기존 needConfirm은 닫음
     setNeedConfirm(null);
-
-    setLogs((prev) => [...prev, { role: "user", text: trimmed }]);
+    
     setInput("");
 
     const res = await fetch("/api/meal/message", {
@@ -125,19 +115,11 @@ const loadDashBoard = async (date) => {
     });
 
     if (!res.ok) {
-      setLogs((prev) => [...prev, { role: "assistant", text: "서버 오류" }]);
       return;
     }
 
     const data = await res.json();
-    console.log("data",data);
-
-    if (data?.assistantText) {
-      setLogs((prev) => [...prev, { role: "assistant", text: data.assistantText }]);
-    }
-    
-    setSummary(data.todaySummary);
-    setItems(data.items ?? []);
+    handleServerResponse(data);
 
     // needConfirm 있으면 저장해서 UI에 버튼 띄움
     if (data.needConfirm) {
@@ -226,10 +208,10 @@ const loadDashBoard = async (date) => {
   }
 
 
-  function handleServerResponse(res) {
-    setLogs((prev) => [...prev, { role: "assistant", text: res.assistantText }]);
+  function handleServerResponse(res) {    
     setSummary(res.todaySummary);
     setItems(res.items ?? []);
+    setLogs(res.chatLog ?? []);
   }
 
   
@@ -380,7 +362,7 @@ const loadDashBoard = async (date) => {
 
         <div className="mt-3 space-y-3">
           {logs.map((log, idx) => {
-            const isUser = log.role === "user";
+            const isUser = log.role === "USER";
             return (
               <div key={idx} className={["flex", isUser ? "justify-end" : "justify-start"].join(" ")}>
                 <div
@@ -390,7 +372,7 @@ const loadDashBoard = async (date) => {
                   ].join(" ")}
                 >
                   <div className="mb-1 text-xs opacity-70">{isUser ? "나" : "GPT"}</div>
-                  <div className="whitespace-pre-line">{log.text}</div>
+                  <div className="whitespace-pre-line">{log.log}</div>
                 </div>
               </div>
             );

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/meal")
@@ -37,6 +38,14 @@ public class MealController {
     @PostMapping("/manual")
     public ResponseEntity<MealMessageResponse> manual(@RequestBody ManualRequest vo) {
         return ResponseEntity.ok(mealService.manualInsert(vo));
+    }
+
+    @PostMapping("/setLogs")
+    public ResponseEntity<Void> setLogs(@AuthenticationPrincipal UserDetails user, @RequestBody MealLogRequest vo) {
+        String userId = user.getUsername();
+        vo.setEmail(userId);
+        mealService.insertLog(vo);
+        return ResponseEntity.ok().build();
     }
 
 
