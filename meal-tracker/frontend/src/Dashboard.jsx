@@ -92,6 +92,7 @@ const loadDashBoard = async (date) => {
     }
 
     const data = await res.json();
+    console.log("dashboard data", data);
     setSummary(data.todaySummary);
     setItems(data.items ?? []);
     setLogs(data.chatLog ?? []);
@@ -356,29 +357,52 @@ const loadDashBoard = async (date) => {
         />
       </section>
 
-      {/* Logs */}
-      <section className="mt-6 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <h3 className="text-base font-semibold text-gray-900">대화 로그</h3>
+     <section className="mt-6 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+    <h3 className="text-base font-semibold text-gray-900">대화 로그</h3>
 
-        <div className="mt-3 space-y-3">
-          {logs.map((log, idx) => {
-            const isUser = log.role === "USER";
-            return (
-              <div key={idx} className={["flex", isUser ? "justify-end" : "justify-start"].join(" ")}>
+    <div className="mt-3 space-y-3">
+      {logs.map((log, idx) => {
+        const isUser = log.role === "USER";
+        const time = log.createdAt
+          ? dayjs(log.createdAt).format("HH:mm:ss")
+          : null;
+
+        return (
+          <div
+            key={idx}
+            className={["flex", isUser ? "justify-end" : "justify-start"].join(" ")}
+          >
+            <div
+              className={[
+                "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                isUser ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900",
+              ].join(" ")}
+            >
+              <div className="mb-1 text-xs opacity-70">
+                {isUser ? "나" : "GPT"}
+              </div>
+
+              <div className="whitespace-pre-line">{log.log}</div>
+
+              {/* 🔽 여기: 채팅 시간 */}
+              {time && (
                 <div
                   className={[
-                    "max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
-                    isUser ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900",
+                    "mt-1 text-[11px] opacity-60",
+                    isUser ? "text-right" : "text-left",
                   ].join(" ")}
                 >
-                  <div className="mb-1 text-xs opacity-70">{isUser ? "나" : "GPT"}</div>
-                  <div className="whitespace-pre-line">{log.log}</div>
+                  {time}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+      
     </div>
   </div>
   </>
