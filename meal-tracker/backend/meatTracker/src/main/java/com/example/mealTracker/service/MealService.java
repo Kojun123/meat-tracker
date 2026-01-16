@@ -140,26 +140,16 @@ public class MealService {
         return TodayResponse.of(summary, items, chatLog);
     }
 
-    public MealMessageResponse manualInsert(ManualRequest vo) {
-        double protein = vo.getProtein() * vo.getCount();
-        double calories =  vo.getKcal() * vo.getCount();
-        String rawName = vo.getRawName();
-        String userId = vo.getUserId();
-        int count = vo.getCount();
-
-        insertItem(rawName, count, calories, protein, userId);
-
-        String assistantText =
-                rawName + " x" + count + " 단백질 : " + protein + " 칼로리 : " + calories
-                    + "\n총 단백질 : " + protein
-                    + " 총 칼로리 : " + calories;
-
-            return buildResponse(assistantText, userId);
-    }
-
     public void deleteItem(String userId, Long itemId) {
         int deleted = mealItemMapper.deleteItem(userId, itemId);
         if (deleted == 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+
+    public void updateItem(UpdateItemRequest vo) {
+        MealItem item = vo.toEntity();
+        int updated = mealItemMapper.updateItem(item);
+
+        if (updated == 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
 

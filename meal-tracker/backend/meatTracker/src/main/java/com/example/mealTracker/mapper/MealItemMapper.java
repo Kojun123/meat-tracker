@@ -12,6 +12,7 @@ import java.util.List;
 public interface MealItemMapper {
     int insertItem(MealItem item);
     int deleteItem(@Param("userId") String userId, @Param("itemId") Long itemId);
+    int updateItem(MealItem item);
     List<MealItem> findItemsByUser(@Param("userId") String userId, @Param("mealDate") LocalDate date);
     TodaySummary findSummaryByUser(@Param("userId") String userId);
 }

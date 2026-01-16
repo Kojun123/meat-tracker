@@ -27,6 +27,14 @@ public class MealController {
         return ResponseEntity.ok(mealService.handle(vo, userId));
     }
 
+    @PutMapping("/item/{itemId}")
+    public ResponseEntity<Void> updateItem(@AuthenticationPrincipal UserDetails user, @PathVariable Long itemId, @RequestBody UpdateItemRequest vo) {
+        String userId = user.getUsername();
+        vo.setUserId(userId);
+        mealService. updateItem(vo);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/item/{itemId}")
     public ResponseEntity<Void> deleteItem(@AuthenticationPrincipal UserDetails user, @PathVariable Long itemId) {
         String userId = user.getUsername();
@@ -39,11 +47,6 @@ public class MealController {
         String userId = user.getUsername();
         if (date == null) date = LocalDate.now(ZoneId.of("Asia/Seoul"));
         return ResponseEntity.ok(mealService.getToday(userId, date));
-    }
-
-    @PostMapping("/manual")
-    public ResponseEntity<MealMessageResponse> manual(@RequestBody ManualRequest vo) {
-        return ResponseEntity.ok(mealService.manualInsert(vo));
     }
 
     @PostMapping("/setLogs")

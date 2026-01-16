@@ -33,6 +33,16 @@
         WHERE user_id = #{userId}
     </select>
 
+    <update id="updateItem">
+        UPDATE meal_item SET
+        name = #{name},
+        count = #{count},
+        calories = #{calories},
+        protein = #{protein}
+        WHERE user_id = #{userId}
+        AND id = #{id}
+    </update>
+
     <delete id="deleteItem">
         DELETE FROM meal_item WHERE user_id = #{userId} and id = #{itemId}
     </delete>
