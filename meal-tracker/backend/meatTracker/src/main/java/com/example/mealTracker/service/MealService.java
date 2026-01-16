@@ -7,8 +7,11 @@ import com.example.mealTracker.mapper.MealLogMapper;
 import com.example.mealTracker.mapper.UserMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.javassist.NotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -56,31 +59,6 @@ public class MealService {
             if (count < 1) count = 1;
             int calories = it.path("calories").asInt(0) * count;
             int protein = it.path("protein").asInt(0) * count;
-
-            //음식이 db에 저장되어 있지 않은 경우 사용자에게 선택지 리턴
-//            FoodMaster fm = foodMasterMapper.findByName(rawName);
-//            if (fm == null) {
-//            TodaySummary summary = calcSummary(userId);
-//            List<MealItem> items = findItemsBySessionId(userId, LocalDate.now(ZoneId.of("Asia/Seoul")));
-//                List<FoodMaster> suggestions = findSimilarByNameJava(rawName, 3);
-//
-//
-//                return MealMessageResponse.needConfirm(
-//                        String.join("\n", lines) + "\n[" + rawName + "]는 등록된 음식이 아님",
-//                        rawName,
-//                        count,
-//                        suggestions,
-//                        summary,
-//                        items
-//                );
-//            }
-
-            //사용자가 입력한 값이 모호할때 선택지 리턴, note : (true : 모호, false : 모호하지않음)
-//            if (it.path("note").asBoolean()) {
-//                return MealMessageResponse.needConfirm(
-//                        assumption, summary, items
-//                );
-//            }
 
             insertItem(rawName, count, calories, protein, userId);
 
@@ -177,6 +155,11 @@ public class MealService {
                     + " 총 칼로리 : " + calories;
 
             return buildResponse(assistantText, userId);
+    }
+
+    public void deleteItem(String userId, Long itemId) {
+        int deleted = mealItemMapper.deleteItem(userId, itemId);
+        if (deleted == 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
 

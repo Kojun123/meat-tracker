@@ -11,7 +11,7 @@ import java.util.List;
 @Mapper
 public interface MealItemMapper {
     int insertItem(MealItem item);
+    int deleteItem(@Param("userId") String userId, @Param("itemId") Long itemId);
     List<MealItem> findItemsByUser(@Param("userId") String userId, @Param("mealDate") LocalDate date);
     TodaySummary findSummaryByUser(@Param("userId") String userId);
-    int deleteItemsBySessionId(@Param("uesrId") String userId);
 }

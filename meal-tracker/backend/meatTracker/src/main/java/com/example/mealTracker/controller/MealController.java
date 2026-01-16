@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/meal")
@@ -22,10 +21,17 @@ public class MealController {
         this.mealService = mealService;
     }
 
-    @PostMapping("/message")
-    public ResponseEntity<MealMessageResponse> message(@RequestBody MealMessageRequest vo, @AuthenticationPrincipal UserDetails user) {
+    @PostMapping("/item")
+    public ResponseEntity<MealMessageResponse> insertItem(@RequestBody MealMessageRequest vo, @AuthenticationPrincipal UserDetails user) {
         String userId = user.getUsername();
         return ResponseEntity.ok(mealService.handle(vo, userId));
+    }
+
+    @DeleteMapping("/item/{itemId}")
+    public ResponseEntity<Void> deleteItem(@AuthenticationPrincipal UserDetails user, @PathVariable Long itemId) {
+        String userId = user.getUsername();
+        mealService.deleteItem(userId, itemId);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/today")

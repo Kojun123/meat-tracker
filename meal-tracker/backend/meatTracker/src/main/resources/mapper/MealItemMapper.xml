@@ -33,8 +33,8 @@
         WHERE user_id = #{userId}
     </select>
 
-    <delete id="deleteItemsBySessionId">
-        DELETE FROM meal_item WHERE user_id = #{userId}
+    <delete id="deleteItem">
+        DELETE FROM meal_item WHERE user_id = #{userId} and id = #{itemId}
     </delete>
 
 </mapper>
