@@ -199,8 +199,10 @@ const loadDashBoard = async (date) => {
       confirmButtonText: '삭제',
       cancelButtonText: '취소'
     })
-
   
+
+    if(!result.isConfirmed) return;
+    
     const res = await fetch(`/api/meal/item/${item.id}`, {
       method: "DELETE",
       credentials: "include",
