@@ -7,18 +7,31 @@ pipeline {
 
   stages {    
 
-    stage('Build Backend') {
+stage('Build Backend') {
   steps {
     sh '''
       set -e
+
+      echo "[HOST] check files in workspace"
+      ls -al "$WORKSPACE/meal-tracker/backend/meatTracker" | head -n 30
+
+      CMD="set -e;
+           echo [IN-CONTAINER] PWD=$(pwd);
+           ls -al;
+           ls -al ./gradlew;
+           chmod +x ./gradlew;
+           sed -i 's/\\r$//' ./gradlew;
+           ./gradlew clean bootJar"
+
       docker run --rm \
         -v "$WORKSPACE:/w" \
         -w /w/meal-tracker/backend/meatTracker \
         gradle:8-jdk21 \
-        bash -c 'ls -al && chmod +x ./gradlew && sed -i "s/\\r$//" ./gradlew && ./gradlew clean bootJar'
+        bash -lc "$CMD"
     '''
   }
 }
+
 
 
 
