@@ -2,6 +2,7 @@ pipeline {
   agent any
   environment {
     DEPLOY_DIR = "/opt/meal-docker"
+    JENKINS_HOME_HOST = "/var/lib/docker/volumes/meal-docker_jenkins_home/_data"
   }
   options { timestamps() }
 
@@ -11,29 +12,14 @@ stage('Build Backend') {
   steps {
     sh '''
       set -e
-
-      echo "[HOST] check files in workspace"
-      ls -al "$WORKSPACE/meal-tracker/backend/meatTracker" | head -n 30
-
-      CMD="set -e;
-           echo [IN-CONTAINER] PWD=$(pwd);
-           ls -al;
-           ls -al ./gradlew;
-           chmod +x ./gradlew;
-           sed -i 's/\\r$//' ./gradlew;
-           ./gradlew clean bootJar"
-
       docker run --rm \
-        -v "$WORKSPACE:/w" \
+        -v "$JENKINS_HOME_HOST/workspace/mealTracker-build:/w" \
         -w /w/meal-tracker/backend/meatTracker \
         gradle:8-jdk21 \
-        bash -lc "$CMD"
+        bash -lc "chmod +x ./gradlew; sed -i 's/\\r$//' ./gradlew; ./gradlew clean bootJar"
     '''
   }
 }
-
-
-
 
     stage('Build Frontend') {
       steps {
