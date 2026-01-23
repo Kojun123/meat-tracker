@@ -21,10 +21,6 @@ export default function Login() {
         credentials: "include",
       });
 
-      console.log("status", res.status);
-      console.log("headers", [...res.headers.entries()]);
-      console.log("text", await res.text());
-
       if (res.status === 200) {
         navigate("/");
         return;
@@ -39,75 +35,84 @@ export default function Login() {
   };
 
   return (
-  <div className="min-h-screen bg-gray-50">
-    <div className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-6 py-10">
-      <div className="w-full max-w-md">
-        <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
-          <div className="text-2xl font-semibold text-gray-900">Meal Tracker</div>
-          <div className="mt-1 text-sm text-gray-500">대충 기록하는 식단</div>
-
-          <form className="mt-8 space-y-5" onSubmit={submit}>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">이메일</label>
-              <input
-                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-gray-400"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                autoComplete="email"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">비밀번호</label>
-              <input
-                className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-gray-400"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
-            </div>
-
-            {err && (
-              <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                {err}
+    <div className="min-h-dvh bg-gray-50">
+      <div className="mx-auto flex min-h-dvh max-w-5xl items-center justify-center px-4 py-10 sm:px-6">
+        <div className="w-full max-w-md">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:rounded-3xl sm:p-8">
+            <header className="space-y-1">
+              <div className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                Meal Tracker
               </div>
-            )}
+              <div className="text-xs text-gray-500 sm:text-sm">
+                대충 기록하는 식단
+              </div>
+            </header>
 
-            <button
-              className={[
-                "w-full rounded-xl px-4 py-3 text-sm font-semibold",
-                loading
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-gray-900 text-white hover:bg-gray-800",
-              ].join(" ")}
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? "로그인 중..." : "로그인"}
-            </button>
+            <form className="mt-6 space-y-4 sm:mt-8 sm:space-y-5" onSubmit={submit}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  이메일
+                </label>
+                <input
+                  className="mt-2 h-11 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  inputMode="email"
+                />
+              </div>
 
-            <div className="pt-2 text-center text-sm text-gray-600">
-              {" "}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  비밀번호
+                </label>
+                <input
+                  className="mt-2 h-11 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
+              </div>
+
+              {err && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {err}
+                </div>
+              )}
+
               <button
-                type="button"
-                className="font-semibold text-gray-900 hover:underline"
-                onClick={() => navigate("/signup")}
+                className={[
+                  "h-11 w-full rounded-xl text-sm font-semibold transition",
+                  loading
+                    ? "cursor-not-allowed bg-gray-200 text-gray-500"
+                    : "bg-gray-900 text-white hover:bg-gray-800 active:bg-gray-900",
+                ].join(" ")}
+                type="submit"
+                disabled={loading}
               >
-                회원가입
+                {loading ? "로그인 중..." : "로그인"}
               </button>
-            </div>
-          </form>
-        </div>
 
-        <div className="mt-6 text-center text-xs text-gray-500">
-          ---
+              <div className="pt-1 text-center text-sm text-gray-600">
+                <button
+                  type="button"
+                  className="font-semibold text-gray-900 hover:underline"
+                  onClick={() => navigate("/signup")}
+                >
+                  회원가입
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="mt-5 text-center text-[11px] text-gray-400 sm:mt-6 sm:text-xs">
+            ---
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
-
+  );
 }

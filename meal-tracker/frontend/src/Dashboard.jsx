@@ -311,7 +311,8 @@ const loadDashBoard = async (date) => {
   return (
      <>
 
-  <div className="min-h-screen bg-gray-50">
+  <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+
     <EditItemModal
       open={editOpen}
       item={editItem}
@@ -377,67 +378,136 @@ const loadDashBoard = async (date) => {
         </div>
 
         {items.length === 0 ? (
-          <div className="px-5 pb-6 text-sm text-gray-600">
-            아직 기록이 없어요
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-y border-gray-100 text-xs text-gray-500">
-                <tr>
-                  <th className="px-5 py-3">음식</th>
-                  <th className="px-5 py-3">수량</th>
-                  <th className="px-5 py-3">칼로리</th>
-                  <th className="px-5 py-3">단백질</th>
-                  <th className="px-5 py-3">시간</th>
-                  <th className="px-5 py-3 text-right"> </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {items.map((it, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-medium text-gray-900">{it.name}</td>
-                    <td className="px-5 py-3 text-gray-700">x{it.count}</td>
-                    <td className="px-5 py-3 text-gray-700">{Math.round(it.calories)}</td>
-                    <td className="px-5 py-3 text-gray-700">{Math.round(it.protein)}</td>
-                    <td className="px-5 py-3 text-gray-500">
-                      {it.createdAt ? dayjs(it.createdAt).format("YYYY-MM-DD HH:mm") : "-"}
-                    </td>
+  <div className="px-5 pb-6 text-sm text-gray-600">
+    아직 기록이 없어요
+  </div>
+) : (
+  <>
+    {/* Mobile: cards */}
+    <div className="px-5 pb-4 sm:hidden">
+      <div className="space-y-3">
+        {items.map((it) => (
+          <div key={it.id} className="rounded-xl border border-gray-100 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold text-gray-900">
+                  {it.name}
+                </div>
+                <div className="mt-1 text-xs text-gray-500">
+                  {it.createdAt ? dayjs(it.createdAt).format("YYYY-MM-DD HH:mm") : "-"}
+                </div>
+              </div>
 
-                    <td className="px-5 py-3">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setEditItem({
-                                id: it.id,
-                                name: it.name,
-                                count: it.count,
-                                calories: it.calories,
-                                protein: it.protein                                
-                              });
-                              setEditOpen(true);                                
-                            }}
-                            className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                            title="수정"
-                          >
-                             ✏️
-                          </button>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  onClick={() => {
+                    setEditItem({
+                      id: it.id,
+                      name: it.name,
+                      count: it.count,
+                      calories: it.calories,
+                      protein: it.protein,
+                    });
+                    setEditOpen(true);
+                  }}
+                  className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700"
+                  title="수정"
+                >
+                  ✏️
+                </button>
 
-                          <button
-                            onClick={() => onDelete(it)}
-                            className="rounded-lg border border-red-200 bg-white px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
-                            title="삭제"
-                          >
-                              🗑️
-                          </button>
-                        </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                <button
+                  onClick={() => onDelete(it)}
+                  className="rounded-lg border border-red-200 bg-white px-2 py-1 text-xs font-medium text-red-700"
+                  title="삭제"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+              <div className="rounded-lg bg-gray-50 px-3 py-2">
+                <div className="text-gray-500">수량</div>
+                <div className="font-semibold text-gray-900">x{it.count}</div>
+              </div>
+              <div className="rounded-lg bg-gray-50 px-3 py-2">
+                <div className="text-gray-500">칼로리</div>
+                <div className="font-semibold text-gray-900">
+                  {Math.round(it.calories)}
+                </div>
+              </div>
+              <div className="rounded-lg bg-gray-50 px-3 py-2">
+                <div className="text-gray-500">단백질</div>
+                <div className="font-semibold text-gray-900">
+                  {Math.round(it.protein)}
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        ))}
+      </div>
+    </div>
+
+    {/* Desktop: table */}
+    <div className="hidden overflow-x-auto sm:block">
+      <table className="w-full text-left text-sm">
+        <thead className="border-y border-gray-100 text-xs text-gray-500">
+          <tr>
+            <th className="px-5 py-3">음식</th>
+            <th className="px-5 py-3">수량</th>
+            <th className="px-5 py-3">칼로리</th>
+            <th className="px-5 py-3">단백질</th>
+            <th className="px-5 py-3">시간</th>
+            <th className="px-5 py-3 text-right"> </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {items.map((it) => (
+            <tr key={it.id} className="hover:bg-gray-50">
+              <td className="px-5 py-3 font-medium text-gray-900">{it.name}</td>
+              <td className="px-5 py-3 text-gray-700">x{it.count}</td>
+              <td className="px-5 py-3 text-gray-700">{Math.round(it.calories)}</td>
+              <td className="px-5 py-3 text-gray-700">{Math.round(it.protein)}</td>
+              <td className="px-5 py-3 text-gray-500">
+                {it.createdAt ? dayjs(it.createdAt).format("YYYY-MM-DD HH:mm") : "-"}
+              </td>
+              <td className="px-5 py-3">
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setEditItem({
+                        id: it.id,
+                        name: it.name,
+                        count: it.count,
+                        calories: it.calories,
+                        protein: it.protein,
+                      });
+                      setEditOpen(true);
+                    }}
+                    className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    title="수정"
+                  >
+                    ✏️
+                  </button>
+
+                  <button
+                    onClick={() => onDelete(it)}
+                    className="rounded-lg border border-red-200 bg-white px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+                    title="삭제"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
+)}
+
 
         <Composer
           input={input}
