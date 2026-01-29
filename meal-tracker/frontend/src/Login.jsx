@@ -9,6 +9,11 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const googleLogin = () => {
+  window.location.href = "http://localhost:8080/oauth2/authorization/google";
+};
+
+
   const submit = async (e) => {
     e.preventDefault();
     setErr(null);
@@ -110,6 +115,23 @@ export default function Login() {
           <div className="mt-5 text-center text-[11px] text-gray-400 sm:mt-6 sm:text-xs">
             ---
           </div>
+
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={googleLogin}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+            >
+              <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="google"
+                className="h-4 w-4"
+              />
+              Google로 로그인
+            </button>
+          </div>
+
+
         </div>
       </div>
     </div>

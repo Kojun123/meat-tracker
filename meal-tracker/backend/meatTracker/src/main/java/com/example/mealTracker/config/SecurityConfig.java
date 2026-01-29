@@ -2,7 +2,10 @@ package com.example.mealTracker.config;
 
 import com.example.mealTracker.common.JwtAuthFilter;
 import com.example.mealTracker.common.JwtProvider;
+import com.example.mealTracker.common.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +28,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Bean
     public JwtProvider jwtProvider(
             @Value("${app.jwt.secret}") String secret,
@@ -41,18 +46,27 @@ public class SecurityConfig {
 
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, JwtProvider jwtProvider) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, JwtProvider jwtProvider, OAuth2SuccessHandler oAuth2SuccessHandler) throws Exception {
         return http
                 .cors(comrs -> {})
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint((req, res, ex) -> res.sendError(401))
                         .accessDeniedHandler((req, res, ex) -> res.sendError(403))
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/logout").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/logout", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2.successHandler(oAuth2SuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            logger.error("OAuth2 login failed: {}", exception.getClass().getSimpleName());
+                            logger.error("OAuth2 failed msg: {}", exception.getMessage());
+                            exception.printStackTrace();
+
+                            response.sendError(401, "oauth failed:" + exception.getMessage());
+                        })
                 )
                 .addFilterBefore(new JwtAuthFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
                 .build();

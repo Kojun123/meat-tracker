@@ -46,4 +46,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String uri = request.getRequestURI();
+        return uri.startsWith("/oauth2/") || uri.startsWith("/login/oauth2/") || uri.startsWith("/login") || uri.startsWith("/error");
+    }
 }

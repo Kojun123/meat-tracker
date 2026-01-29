@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Dashboard from "./Dashboard";
 import Signup from "./Signup";
 import Login from "./Login";
+import OAuthCallback from "./OAuthCallback";
 import { restoreSession, subscribeAccessToken } from "./lib/apiFetch";
 
 import { Navigate } from "react-router-dom";
@@ -41,6 +42,7 @@ export default function AppRouter() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/oauth/callback" element={<OAuthCallback />} />
       <Route
         path="/"
         element={
